@@ -54,12 +54,46 @@
     rawState: null,
     view: null,
     lastEventId: null,
+    lastChangedGiftId: null,
+    activeModal: null,
+    modalOpener: null,
     showLog: false,
     unwrapIcon: 'gift',
     showIconPicker: false,
     editIcon: 'gift',
     expandedHistoryIds: new Set()
   };
+
+  function getFocusable(container) {
+    return Array.from(
+      container.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    ).filter((el) => el.offsetParent !== null);
+  }
+
+  function openDialog(modalEl, focusTarget = null) {
+    ui.modalOpener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    ui.activeModal = modalEl;
+    modalEl.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      const target = focusTarget || getFocusable(modalEl)[0];
+      target?.focus();
+    });
+  }
+
+  function closeDialog(modalEl) {
+    if (modalEl.classList.contains('hidden')) return;
+    modalEl.classList.add('hidden');
+    if (ui.activeModal === modalEl) {
+      ui.activeModal = null;
+      const opener = ui.modalOpener;
+      ui.modalOpener = null;
+      if (opener && document.contains(opener)) {
+        opener.focus();
+      }
+    }
+  }
 
   function icon(key, cls = 'svg-icon') {
     return Icons.renderIcon(key, cls);
@@ -110,6 +144,7 @@
           type="button"
           class="theme-pill-btn ${t.id === ui.theme ? 'active' : ''}"
           data-theme-id="${t.id}"
+          aria-pressed="${t.id === ui.theme ? 'true' : 'false'}"
           title="${escapeHtml(t.name)}"
           aria-label="${escapeHtml(t.name)} theme"
         >
@@ -193,6 +228,7 @@
     if (evt && evt.id && evt.id !== ui.lastEventId) {
       const wasInitial = ui.lastEventId === null;
       ui.lastEventId = evt.id;
+      ui.lastChangedGiftId = !wasInitial && evt.meta?.giftId ? evt.meta.giftId : null;
 
       if (!wasInitial) {
         const evtIcon = evt.meta?.icon || 'sparkle';
@@ -258,6 +294,7 @@
     headerUndoBtn.innerHTML = icon('undo');
     toggleLogBtn.innerHTML = icon('log');
     toggleLogBtn.classList.toggle('active', ui.showLog);
+    toggleLogBtn.setAttribute('aria-pressed', ui.showLog ? 'true' : 'false');
     newGameBtn.innerHTML = icon('refresh');
 
     if (s) {
@@ -512,13 +549,21 @@
             : `
             <form id="unwrap-form" class="unwrap-bar">
               <div class="unwrap-form-row">
-                <button type="button" id="icon-toggle-btn" class="icon-trigger-btn" title="Gift icon">
+                <button
+                  type="button"
+                  id="icon-toggle-btn"
+                  class="icon-trigger-btn"
+                  title="Gift icon"
+                  aria-label="Choose gift icon"
+                  aria-expanded="${ui.showIconPicker ? 'true' : 'false'}"
+                >
                   ${Icons.SVGS[Icons.resolveIconKey(ui.unwrapIcon)]}
                 </button>
                 <input
                   type="text"
                   id="unwrap-title-input"
                   class="unwrap-input"
+                  aria-label="Unwrapped gift name"
                   maxlength="80"
                   required
                   autocomplete="off"
@@ -601,18 +646,32 @@
                         : `<span style="font-size:0.82rem">${g.stealCount}</span>`;
                     const showHistory = ui.expandedHistoryIds.has(g.id);
 
+                    const justUpdated = ui.lastChangedGiftId === g.id;
                     return `
-                      <article class="gift-card ${g.canBeStolen ? 'stealable' : ''} ${g.frozen ? 'frozen' : ''}">
+                      <article class="gift-card ${g.canBeStolen ? 'stealable' : ''} ${g.frozen ? 'frozen' : ''} ${justUpdated ? 'just-updated' : ''}">
                         <div class="gift-card-top">
                           <div class="gift-icon-box">${Icons.SVGS[Icons.resolveIconKey(g.icon)]}</div>
                           <div style="flex:1;min-width:0">
                             <h3 class="gift-title">${escapeHtml(g.title)}</h3>
                           </div>
                           <div class="card-corner-actions">
-                            <button class="micro-btn history-toggle-btn" data-gift-id="${escapeHtml(g.id)}" title="Steal history" type="button">
+                            <button
+                              class="micro-btn history-toggle-btn"
+                              data-gift-id="${escapeHtml(g.id)}"
+                              title="Steal history"
+                              aria-label="Toggle steal history for ${escapeHtml(g.title)}"
+                              aria-expanded="${showHistory ? 'true' : 'false'}"
+                              type="button"
+                            >
                               ${icon('history')} ${g.history.length}
                             </button>
-                            <button class="micro-btn edit-gift-btn" data-gift-id="${escapeHtml(g.id)}" title="Edit gift" type="button">
+                            <button
+                              class="micro-btn edit-gift-btn"
+                              data-gift-id="${escapeHtml(g.id)}"
+                              title="Edit gift"
+                              aria-label="Edit ${escapeHtml(g.title)}"
+                              type="button"
+                            >
                               ${icon('edit')}
                             </button>
                           </div>
@@ -909,11 +968,11 @@
     const activeSettings = getActiveRuleSettings();
     printCountInput.value = activeSettings.playerCount;
     renderPrintSheet(activeSettings.playerCount);
-    printModal.classList.remove('hidden');
+    openDialog(printModal, printCountInput);
   }
 
   function closePrintModal() {
-    printModal.classList.add('hidden');
+    closeDialog(printModal);
   }
 
   printSheetBtn.addEventListener('click', openPrintModal);
@@ -1016,11 +1075,11 @@
       </div>
     `;
 
-    rulesModal.classList.remove('hidden');
+    openDialog(rulesModal, rulesModalOk);
   }
 
   function closeRulesModal() {
-    rulesModal.classList.add('hidden');
+    closeDialog(rulesModal);
   }
 
   rulesBtn.addEventListener('click', openRulesModal);
@@ -1046,15 +1105,12 @@
           <span class="picker-svg">${Icons.SVGS[item.id]}</span>
         </button>`
     ).join('');
-    editModal.classList.remove('hidden');
-    setTimeout(() => {
-      editGiftName.focus();
-      editGiftName.select();
-    }, 30);
+    openDialog(editModal, editGiftName);
+    setTimeout(() => editGiftName.select(), 40);
   }
 
   function closeEditModal() {
-    editModal.classList.add('hidden');
+    closeDialog(editModal);
   }
 
   editGiftIconGrid.addEventListener('click', (e) => {
@@ -1087,6 +1143,21 @@
     if (e.target === editModal) closeEditModal();
   });
   document.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab' && ui.activeModal) {
+      const focusables = getFocusable(ui.activeModal);
+      if (focusables.length > 0) {
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+      return;
+    }
     if (e.key === 'Escape') {
       closeEditModal();
       closeRulesModal();

@@ -9,5 +9,6 @@ RUN node --test test/*.test.js
 FROM nginx:alpine
 RUN rm -rf /usr/share/nginx/html/*
 COPY index.html styles.css icons.js engine.js sound.js app.js /usr/share/nginx/html/
+COPY fonts /usr/share/nginx/html/fonts
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
