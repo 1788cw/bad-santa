@@ -1,0 +1,9 @@
+{
+  "name": "bad-santa-app",
+  "version": "1.0.0",
+  "description": "Self-contained browser-only Bad Santa (White Elephant / Dirty Santa) party tracker for meeting room TVs",
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "license": "MIT"
+}

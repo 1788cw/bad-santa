@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bad Santa — Live Party Tracker</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎅</text></svg>" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="snow-layer" aria-hidden="true"></div>
+  <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-icon">🎅</span>
+        <span class="brand-text">Bad Santa</span>
+      </div>
+
+      <div id="game-header-pills" class="header-pills hidden">
+        <span id="pill-remaining" class="pill pill-gold"></span>
+        <span id="pill-opened" class="pill pill-green"></span>
+        <span id="pill-rule" class="pill pill-muted"></span>
+      </div>
+
+      <div class="topbar-actions">
+        <button id="header-undo-btn" class="btn btn-ghost btn-sm hidden" type="button" title="Undo last move">
+          ⏪ Undo
+        </button>
+        <button id="toggle-log-btn" class="btn btn-ghost btn-sm hidden" type="button" title="Show or hide play-by-play log">
+          📜 Log
+        </button>
+        <button id="fullscreen-btn" class="btn btn-ghost btn-sm" type="button" title="Toggle TV Fullscreen">
+          ⛶ Fullscreen
+        </button>
+        <button id="sound-toggle-btn" class="btn btn-ghost btn-sm" type="button" title="Toggle sound effects">
+          🔊 Sound
+        </button>
+        <button id="new-game-btn" class="btn btn-danger-ghost btn-sm hidden" type="button">
+          🔄 New Game
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="app" class="app-container">
+    <div class="loading-card">
+      <div class="loading-spinner">🎄</div>
+      <p>Loading Bad Santa...</p>
+    </div>
+  </main>
+
+  <!-- Edit Gift Modal -->
+  <div id="edit-gift-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="edit-gift-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="edit-gift-title">✏️ Edit Gift</h3>
+        <button id="edit-gift-close" class="icon-btn" type="button" aria-label="Close">✕</button>
+      </div>
+      <form id="edit-gift-form" class="form-stack">
+        <input type="hidden" id="edit-gift-id" />
+        <label class="field">
+          <span>Gift Name</span>
+          <input type="text" id="edit-gift-name" maxlength="80" required autocomplete="off" />
+        </label>
+        <div class="field">
+          <span>Icon</span>
+          <div id="edit-gift-emoji-grid" class="emoji-picker-grid"></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="edit-gift-cancel" class="btn btn-ghost">Cancel</button>
+          <button type="submit" class="btn btn-gold">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="./engine.js"></script>
+  <script src="./sound.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
