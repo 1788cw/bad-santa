@@ -959,6 +959,12 @@
     const ms = Music.getState();
     const pct = ms.duration > 0 ? Math.min(100, (ms.currentTime / ms.duration) * 100) : 0;
 
+    const JazzEngine = window.BadSantaJazzEngine;
+    const totalSec = JazzEngine && typeof JazzEngine.estimateTrackSeconds === 'function'
+      ? ms.tracks.reduce((sum, t) => sum + JazzEngine.estimateTrackSeconds(t), 0)
+      : 0;
+    const totalMin = Math.round(totalSec / 60);
+
     musicPlayerBody.innerHTML = `
       <div class="now-playing-box">
         <div class="now-playing-meta">
@@ -1023,6 +1029,14 @@
         </div>
       </div>
 
+      ${
+        totalMin > 0
+          ? `<div class="track-list-header">
+               <span>Setlist · ${ms.tracks.length} Holiday Standards</span>
+               <span>~${totalMin} min</span>
+             </div>`
+          : ''
+      }
       <div class="track-list" role="list">
         ${ms.tracks
           .map(

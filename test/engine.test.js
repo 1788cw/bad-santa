@@ -14,6 +14,7 @@ const {
 const Icons = require('../icons');
 const Music = require('../music');
 const JazzCharts = require('../jazz-charts');
+const JazzEngine = require('../jazz-engine');
 
 test('full numbered-player Bad Santa flow: unwrap, steal chain, no steal-back, freeze, undo, final swap', () => {
   let state = createInitialState();
@@ -118,10 +119,12 @@ test('all gift icon IDs and themes resolve to valid SVG vector graphics', () => 
   assert.equal(Icons.resolveIconKey('unknown_legacy_emoji'), 'gift');
 });
 
-test('generated Jazz Trio Christmas charts have valid harmony, walking bass, melody, and solo choruses', () => {
-  assert.ok(JazzCharts.JAZZ_CHARTS.length >= 8);
-  assert.equal(Music.TRACKS.length, JazzCharts.JAZZ_CHARTS.length);
+test('generated Jazz Quartet Christmas charts have valid harmony, walking bass, melody, and solo choruses', () => {
+  assert.equal(JazzCharts.JAZZ_CHARTS.length, 24);
+  assert.equal(Music.TRACKS.length, 24);
+  let totalSeconds = 0;
   for (const chart of JazzCharts.JAZZ_CHARTS) {
+    totalSeconds += JazzEngine.estimateTrackSeconds(chart);
     assert.ok(chart.id && chart.title && chart.vibe && chart.key, `Missing metadata on ${chart.id}`);
     assert.ok(chart.bpm >= 70 && chart.bpm <= 165, `Unexpected BPM ${chart.bpm} on ${chart.title}`);
     assert.ok(chart.timeSig === 3 || chart.timeSig === 4, `Unexpected timeSig ${chart.timeSig} on ${chart.title}`);
@@ -142,6 +145,7 @@ test('generated Jazz Trio Christmas charts have valid harmony, walking bass, mel
       assert.ok(n.midi >= 55 && n.midi <= 88, `Out-of-range lead MIDI ${n.midi} on ${chart.title}`);
     }
   }
+  assert.ok(totalSeconds >= 5300, `Expected 88+ min setlist runtime, got ${Math.round(totalSeconds / 60)} min`);
 });
 
 test('game ends cleanly without bonus turn when disabled', () => {

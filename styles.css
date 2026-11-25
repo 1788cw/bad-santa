@@ -1965,6 +1965,17 @@ h1, h2, h3, h4 {
   cursor: pointer;
 }
 
+.track-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.2rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
 .track-list {
   display: flex;
   flex-direction: column;
