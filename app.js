@@ -17,9 +17,16 @@
   const rulesBtn = document.getElementById('rules-btn');
   const toggleLogBtn = document.getElementById('toggle-log-btn');
   const fullscreenBtn = document.getElementById('fullscreen-btn');
+  const musicBtn = document.getElementById('music-btn');
   const soundToggleBtn = document.getElementById('sound-toggle-btn');
   const newGameBtn = document.getElementById('new-game-btn');
   const toastContainer = document.getElementById('toast-container');
+
+  // Holiday music player modal
+  const musicModal = document.getElementById('music-modal');
+  const musicModalTitle = document.getElementById('music-modal-title');
+  const musicModalClose = document.getElementById('music-modal-close');
+  const musicPlayerBody = document.getElementById('music-player-body');
 
   // Printable number sheet modal
   const printModal = document.getElementById('print-modal');
@@ -754,7 +761,8 @@
       unwrapInput &&
       editModal.classList.contains('hidden') &&
       rulesModal.classList.contains('hidden') &&
-      printModal.classList.contains('hidden')
+      printModal.classList.contains('hidden') &&
+      musicModal.classList.contains('hidden')
     ) {
       unwrapInput.focus();
     }
@@ -924,6 +932,180 @@
 
     document.getElementById('finale-new-game-btn').addEventListener('click', resetGame);
   }
+
+  // ==================== HOLIDAY MUSIC PLAYER MODAL ====================
+  function formatSeconds(sec) {
+    if (!Number.isFinite(sec) || sec <= 0) return '0:00';
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m}:${String(s).padStart(2, '0')}`;
+  }
+
+  function updateMusicHeaderBtn() {
+    const Music = window.BadSantaMusic;
+    if (!Music || !musicBtn) return;
+    const ms = Music.getState();
+    musicBtn.innerHTML = icon('musicNote');
+    musicBtn.classList.toggle('active', ms.playing);
+    musicBtn.setAttribute('aria-pressed', ms.playing ? 'true' : 'false');
+    musicBtn.title = ms.playing
+      ? `Playing: ${ms.currentTrack.title} (${ms.currentTrack.vibe})`
+      : 'Holiday Jazz Trio';
+  }
+
+  function renderMusicPlayer() {
+    const Music = window.BadSantaMusic;
+    if (!Music || !musicPlayerBody) return;
+    const ms = Music.getState();
+    const pct = ms.duration > 0 ? Math.min(100, (ms.currentTime / ms.duration) * 100) : 0;
+
+    musicPlayerBody.innerHTML = `
+      <div class="now-playing-box">
+        <div class="now-playing-meta">
+          <div style="min-width:0">
+            <h4 class="now-playing-title">${escapeHtml(ms.currentTrack.title)}</h4>
+            <div class="now-playing-vibe">
+              ${escapeHtml(ms.currentTrack.vibe)}${
+                ms.currentTrack.key
+                  ? ` · ${escapeHtml(ms.currentTrack.key)} · ${ms.currentTrack.bpm} BPM`
+                  : ''
+              }
+            </div>
+          </div>
+          <div class="now-playing-right">
+            <span id="music-jazz-live" class="jazz-live-pill">
+              <span id="music-jazz-chorus">${escapeHtml(ms.chorusLabel || 'Head')}</span>
+              <strong id="music-jazz-chord">${escapeHtml(ms.chordSymbol || '')}</strong>
+            </span>
+            <div class="eq-bars ${ms.playing ? 'playing' : ''}" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="music-progress-wrap">
+          <span id="music-cur-time">${formatSeconds(ms.currentTime)}</span>
+          <button type="button" id="music-progress-bar" class="music-progress-track" aria-label="Seek track">
+            <div id="music-progress-fill" class="music-progress-fill" style="width:${pct}%"></div>
+          </button>
+          <span id="music-dur-time">${formatSeconds(ms.duration)}</span>
+        </div>
+
+        <div class="music-controls-row">
+          <div class="music-transport">
+            <button type="button" id="music-prev-btn" class="icon-btn" title="Previous track" aria-label="Previous track">
+              ${icon('skipPrev')}
+            </button>
+            <button type="button" id="music-play-btn" class="music-play-btn" title="${ms.playing ? 'Pause' : 'Play'}" aria-label="${ms.playing ? 'Pause' : 'Play'}">
+              ${icon(ms.playing ? 'pause' : 'play')}
+            </button>
+            <button type="button" id="music-next-btn" class="icon-btn" title="Next track" aria-label="Next track">
+              ${icon('skipNext')}
+            </button>
+            <button type="button" id="music-shuffle-btn" class="icon-btn ${ms.shuffle ? 'active' : ''}" aria-pressed="${ms.shuffle ? 'true' : 'false'}" title="Shuffle" aria-label="Toggle shuffle">
+              ${icon('shuffle')}
+            </button>
+          </div>
+
+          <label class="music-volume-wrap">
+            ${icon(ms.volume > 0 ? 'soundOn' : 'soundOff')}
+            <input
+              type="range"
+              id="music-volume-slider"
+              class="music-volume-slider"
+              min="0"
+              max="100"
+              value="${Math.round(ms.volume * 100)}"
+              aria-label="Music volume"
+            />
+            <span id="music-vol-pct" style="min-width:34px;text-align:right">${Math.round(ms.volume * 100)}%</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="track-list" role="list">
+        ${ms.tracks
+          .map(
+            (t, idx) => `
+            <button
+              type="button"
+              class="track-item ${idx === ms.currentIndex ? 'active' : ''}"
+              data-track-id="${escapeHtml(t.id)}"
+              aria-current="${idx === ms.currentIndex ? 'true' : 'false'}"
+            >
+              <div class="track-item-left">
+                <span class="track-num">${idx + 1}</span>
+                <span class="track-name">${escapeHtml(t.title)}</span>
+              </div>
+              <span class="track-vibe">${escapeHtml(t.vibe)}</span>
+            </button>`
+          )
+          .join('')}
+      </div>
+    `;
+
+    document.getElementById('music-play-btn')?.addEventListener('click', () => Music.togglePlay());
+    document.getElementById('music-prev-btn')?.addEventListener('click', () => Music.prev(true));
+    document.getElementById('music-next-btn')?.addEventListener('click', () => Music.next(true));
+    document.getElementById('music-shuffle-btn')?.addEventListener('click', () => Music.toggleShuffle());
+
+    document.getElementById('music-progress-bar')?.addEventListener('click', (e) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      if (rect.width > 0) {
+        Music.seek((e.clientX - rect.left) / rect.width);
+      }
+    });
+
+    const volSlider = document.getElementById('music-volume-slider');
+    volSlider?.addEventListener('input', () => {
+      const v = Number(volSlider.value) / 100;
+      Music.setVolume(v);
+      const pctEl = document.getElementById('music-vol-pct');
+      if (pctEl) pctEl.textContent = `${Math.round(v * 100)}%`;
+    });
+
+    musicPlayerBody.querySelectorAll('[data-track-id]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        Music.selectTrack(btn.dataset.trackId, true);
+      });
+    });
+  }
+
+  function openMusicModal() {
+    renderMusicPlayer();
+    openDialog(musicModal, document.getElementById('music-play-btn'));
+  }
+
+  function closeMusicModal() {
+    closeDialog(musicModal);
+  }
+
+  musicBtn?.addEventListener('click', openMusicModal);
+  musicModalClose?.addEventListener('click', closeMusicModal);
+  musicModal?.addEventListener('click', (e) => {
+    if (e.target === musicModal) closeMusicModal();
+  });
+
+  window.BadSantaMusic?.subscribe((ms, reason) => {
+    updateMusicHeaderBtn();
+    if (musicModal.classList.contains('hidden')) return;
+    if (reason === 'time' || reason === 'meta') {
+      const curEl = document.getElementById('music-cur-time');
+      const durEl = document.getElementById('music-dur-time');
+      const fillEl = document.getElementById('music-progress-fill');
+      if (curEl) curEl.textContent = formatSeconds(ms.currentTime);
+      if (durEl) durEl.textContent = formatSeconds(ms.duration);
+      if (fillEl && ms.duration > 0) {
+        fillEl.style.width = `${Math.min(100, (ms.currentTime / ms.duration) * 100)}%`;
+      }
+      const chorusEl = document.getElementById('music-jazz-chorus');
+      const chordEl = document.getElementById('music-jazz-chord');
+      if (chorusEl && ms.chorusLabel) chorusEl.textContent = ms.chorusLabel;
+      if (chordEl && ms.chordSymbol) chordEl.textContent = ms.chordSymbol;
+    } else if (reason === 'state') {
+      renderMusicPlayer();
+    }
+  });
 
   // ==================== PRINTABLE NUMBER SHEET MODAL ====================
   function renderPrintSheet(count) {
@@ -1162,6 +1344,7 @@
       closeEditModal();
       closeRulesModal();
       closePrintModal();
+      closeMusicModal();
       return;
     }
     const tag = (e.target && e.target.tagName) || '';
@@ -1228,6 +1411,9 @@
 
   // ==================== BOOT ====================
   brandLogoEl.innerHTML = Icons.SVGS.badSantaLogo;
+  musicModalTitle.innerHTML = `${icon('musicNote')}<span>Holiday Music</span>`;
+  musicModalClose.innerHTML = icon('close');
+  updateMusicHeaderBtn();
   if (snowCrystalsEl) {
     const flakes = [
       { left: 5, size: 18, dur: 15, delay: -2, sway: 4.5, drift: 45 },

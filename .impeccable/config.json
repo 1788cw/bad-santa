@@ -5,5 +5,20 @@
       "maxFindings": 5,
       "maxChars": 8000
     }
+  },
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-11-25T19:58:39.280Z",
+        "reason": "False positive: @media print sets white background on .modal-card-print while .no-print hides #print-modal-title in print; on screen it renders on dark --bg-card-solid"
+      }
+    ]
   }
 }

@@ -349,6 +349,35 @@
       <path d="M20 4L8.1 15.9M14.5 14.5L20 20M8.1 8.1L12 12"/>
     </svg>`,
 
+    musicNote: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 18V5L21 3V16"/>
+      <circle cx="6" cy="18" r="3" fill="currentColor" fill-opacity="0.2"/>
+      <circle cx="18" cy="16" r="3" fill="currentColor" fill-opacity="0.2"/>
+    </svg>`,
+
+    play: `<svg viewBox="0 0 24 24" fill="currentColor">
+      <polygon points="7,4 20,12 7,20"/>
+    </svg>`,
+
+    pause: `<svg viewBox="0 0 24 24" fill="currentColor">
+      <rect x="6" y="4" width="4.5" height="16" rx="1.2"/>
+      <rect x="13.5" y="4" width="4.5" height="16" rx="1.2"/>
+    </svg>`,
+
+    skipPrev: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="19,5 9,12 19,19" fill="currentColor" fill-opacity="0.2"/>
+      <line x1="5" y1="5" x2="5" y2="19"/>
+    </svg>`,
+
+    skipNext: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="5,5 15,12 5,19" fill="currentColor" fill-opacity="0.2"/>
+      <line x1="19" y1="5" x2="19" y2="19"/>
+    </svg>`,
+
+    shuffle: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M16 3H21V8M4 20L21 3M21 16V21H16M15 15L21 21M4 4L9 9"/>
+    </svg>`,
+
     // ==================== FESTIVE CORNER & BORDER ORNAMENTS ====================
     mistletoeCorner: `<svg viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
       <!-- Sweeping evergreen bough -->

@@ -19,11 +19,12 @@ A **100% browser-only, zero-dependency** Bad Santa (White Elephant / Dirty Santa
 ## Features
 
 - **100% Custom Vector Graphics** (`icons.js`) — Crisp SVG brand mark, illustrations, status emblems, and 16 selectable multi-tone gift category vectors (zero emojis).
-- **Numbers `#1`–`#X`**: Pick total players (2–60) — no rooms, codes, or typing player names.
+- **Numbers `1`–`X`**: Pick total players (2–60) — no rooms, codes, or typing player names. Includes 30-up printable cut-out number cards.
 - **Fast Live Tracking**: Type each unwrapped gift name right in the turn spotlight and press **Enter**; click **Steal** on any open gift card to transfer ownership and call up the robbed player.
-- **Automatic Bad Santa Rules**: Configurable max steals per gift with **Frozen** locks, same-turn steal-back protection, and **Player #1 Final Bonus Turn**.
+- **Automatic Bad Santa Rules**: Configurable max steals per gift with **Frozen** locks, same-turn steal-back protection, and **Player 1 Final Bonus Turn**.
+- **Built-In Live Holiday Jazz Trio** (`jazz-charts.js`, `jazz-engine.js`, `music.js`): Classic Christmas songs recomposed into live jazz arrangements (Swing, 3/4 Jazz Waltz, Bossa Nova, Cocktail Ballad, Cool Modal, Soul-Jazz) with improvised Rhodes solo choruses — synthesized live in-browser via Web Audio (Fender Rhodes, plucked upright bass, brushed drums, warm room reverb) with zero audio files, live chord-change readout, shuffle, seek bar, saved volume, and automatic SFX ducking.
 - **TV Ready**: **Fullscreen** mode, toggleable play-by-play log, inline gift editing, **Undo**, synthesized festive sound effects, and end-of-game superlative awards.
-- **Auto-Save + Dual-Window Sync**: Saves progress and theme in `localStorage` and syncs across browser windows via `BroadcastChannel`.
+- **Auto-Save + Dual-Window Sync**: Saves progress, theme, and music settings in `localStorage` and syncs across browser windows via `BroadcastChannel`.
 
 ## Files
 
@@ -33,4 +34,6 @@ A **100% browser-only, zero-dependency** Bad Santa (White Elephant / Dirty Santa
 - `engine.js` — Pure Bad Santa rules & state machine
 - `app.js` — Browser UI, theme switcher, `localStorage` persistence, and tab sync
 - `sound.js` — Synthesized Web Audio festive sound effects
-- `test/engine.test.js` — Automated rules & icon tests (`npm test`)
+- `music.js` — Holiday Jazz Trio playback controller (shuffle, volume persistence, SFX ducking)
+- `jazz-charts.js` & `jazz-engine.js` — Recomposed classic Christmas jazz charts & live Web Audio Jazz Trio synthesizer
+- `test/engine.test.js` — Automated rules, icons, and jazz chart tests (`npm test`)

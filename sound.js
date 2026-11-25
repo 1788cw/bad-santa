@@ -61,6 +61,7 @@
       tone(783.99, 0.16, 0.28, 'sine', 0.085);
     },
     unwrap() {
+      window.BadSantaMusic?.duck(600);
       tone(440, 0, 0.12, 'triangle', 0.07);
       tone(554.37, 0.07, 0.14, 'triangle', 0.075);
       tone(659.25, 0.14, 0.16, 'triangle', 0.08);
@@ -68,17 +69,20 @@
     },
     // Playful sneaky pizzicato + soft upward "yoink!" (no harsh sawtooth)
     steal() {
+      window.BadSantaMusic?.duck(650);
       tone(329.63, 0, 0.085, 'triangle', 0.075);
       tone(311.13, 0.09, 0.085, 'triangle', 0.075);
       tone(261.63, 0.18, 0.22, 'sine', 0.09, 440);
       tone(392.0, 0.24, 0.18, 'triangle', 0.055, 523.25);
     },
     freeze() {
+      window.BadSantaMusic?.duck(700);
       tone(1046.5, 0, 0.22, 'sine', 0.065);
       tone(1318.5, 0.08, 0.25, 'sine', 0.065);
       tone(1567.98, 0.16, 0.38, 'sine', 0.075);
     },
     fanfare() {
+      window.BadSantaMusic?.duck(900);
       const notes = [523.25, 659.25, 783.99, 1046.5];
       notes.forEach((n, idx) => tone(n, idx * 0.1, 0.32, 'triangle', 0.085));
     }

@@ -12,6 +12,8 @@ const {
   serializeState
 } = require('../engine');
 const Icons = require('../icons');
+const Music = require('../music');
+const JazzCharts = require('../jazz-charts');
 
 test('full numbered-player Bad Santa flow: unwrap, steal chain, no steal-back, freeze, undo, final swap', () => {
   let state = createInitialState();
@@ -109,7 +111,37 @@ test('all gift icon IDs and themes resolve to valid SVG vector graphics', () => 
     assert.ok(Icons.SVGS[item.id], `Missing SVG for gift icon: ${item.id}`);
     assert.match(Icons.SVGS[item.id], /^<svg[\s\S]*<\/svg>$/);
   }
+  for (const uiId of ['musicNote', 'play', 'pause', 'skipPrev', 'skipNext', 'shuffle']) {
+    assert.ok(Icons.SVGS[uiId], `Missing SVG for music UI icon: ${uiId}`);
+    assert.match(Icons.SVGS[uiId], /^<svg[\s\S]*<\/svg>$/);
+  }
   assert.equal(Icons.resolveIconKey('unknown_legacy_emoji'), 'gift');
+});
+
+test('generated Jazz Trio Christmas charts have valid harmony, walking bass, melody, and solo choruses', () => {
+  assert.ok(JazzCharts.JAZZ_CHARTS.length >= 8);
+  assert.equal(Music.TRACKS.length, JazzCharts.JAZZ_CHARTS.length);
+  for (const chart of JazzCharts.JAZZ_CHARTS) {
+    assert.ok(chart.id && chart.title && chart.vibe && chart.key, `Missing metadata on ${chart.id}`);
+    assert.ok(chart.bpm >= 70 && chart.bpm <= 165, `Unexpected BPM ${chart.bpm} on ${chart.title}`);
+    assert.ok(chart.timeSig === 3 || chart.timeSig === 4, `Unexpected timeSig ${chart.timeSig} on ${chart.title}`);
+    assert.ok(chart.bars >= 16, `Too few bars on ${chart.title}`);
+    assert.ok(chart.chords.length >= chart.bars, `Too few chords on ${chart.title}`);
+    assert.ok(chart.bass.length >= chart.bars, `Too few bass notes on ${chart.title}`);
+    assert.ok(chart.melody.length >= 16, `Too few melody notes on ${chart.title}`);
+    assert.ok(chart.solo.length >= 16, `Too few solo notes on ${chart.title}`);
+
+    for (const ch of chart.chords) {
+      assert.ok(ch.bar >= 0 && ch.bar < chart.bars, `Out-of-bounds chord bar on ${chart.title}`);
+      assert.ok(ch.beat >= 0 && ch.beat < chart.timeSig, `Out-of-bounds chord beat on ${chart.title}`);
+      assert.ok(Array.isArray(ch.notes) && ch.notes.length >= 3, `Invalid chord voicing on ${chart.title}`);
+    }
+    for (const n of [...chart.melody, ...chart.solo]) {
+      assert.ok(n.bar >= 0 && n.bar < chart.bars, `Out-of-bounds lead bar on ${chart.title}`);
+      assert.ok(n.beat >= 0 && n.beat < chart.timeSig, `Out-of-bounds lead beat on ${chart.title}`);
+      assert.ok(n.midi >= 55 && n.midi <= 88, `Out-of-range lead MIDI ${n.midi} on ${chart.title}`);
+    }
+  }
 });
 
 test('game ends cleanly without bonus turn when disabled', () => {
