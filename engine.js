@@ -1,8 +1,7 @@
 (function initBadSantaEngine(globalScope) {
-  const GIFT_EMOJIS = [
-    '🎁', '☕', '🎧', '🕯️', '🍫', '🎲', '🐟', '🪴',
-    '🍷', '🧣', '🕹️', '📚', '🧸', '🍕', '🧦', '🔥',
-    '🧇', '⛳', '💎', '🎺'
+  const GIFT_ICON_IDS = [
+    'gift', 'coffee', 'headphones', 'voucher', 'wine', 'candle', 'chocolate', 'game',
+    'controller', 'cozy', 'plant', 'book', 'kitchen', 'music', 'gem', 'gag'
   ];
 
   const DEFAULT_SETTINGS = {
@@ -27,6 +26,13 @@
   function sanitizeText(value, maxLen = 80) {
     if (typeof value !== 'string') return '';
     return value.trim().replace(/\s+/g, ' ').slice(0, maxLen);
+  }
+
+  function normalizeIcon(icon) {
+    if (typeof icon === 'string' && GIFT_ICON_IDS.includes(icon)) {
+      return icon;
+    }
+    return 'gift';
   }
 
   function normalizeSettings(input = {}, base = DEFAULT_SETTINGS) {
@@ -167,11 +173,13 @@
     next.currentTurnNumber = 1;
     next.activePlayerNumber = 1;
 
-    addEvent(next, 'game_started', `🎄 Bad Santa started with ${count} players (#1–#${count})! #1 goes first!`);
+    addEvent(next, 'game_started', `Bad Santa started with ${count} players (1–${count}). Player 1 goes first!`, {
+      icon: 'tree'
+    });
     return next;
   }
 
-  function unwrapGift(state, { title, emoji = '🎁' }) {
+  function unwrapGift(state, { title, icon = 'gift' }) {
     if (state.phase !== 'playing') {
       throw new GameError('Can only unwrap gifts during active play.');
     }
@@ -179,7 +187,7 @@
     if (!cleanTitle) {
       throw new GameError('Enter the unwrapped gift name!');
     }
-    const cleanEmoji = sanitizeText(emoji, 8) || '🎁';
+    const cleanIcon = normalizeIcon(icon);
     const activePlayer = findPlayer(state, state.activePlayerNumber);
     if (!activePlayer) {
       throw new GameError('No active player right now.');
@@ -193,7 +201,7 @@
     const gift = {
       id: generateId('g_'),
       title: cleanTitle,
-      emoji: cleanEmoji,
+      icon: cleanIcon,
       ownerNumber: activePlayer.number,
       stealCount: 0,
       frozen: false,
@@ -216,8 +224,8 @@
     const evt = addEvent(
       state,
       'gift_unwrapped',
-      `🎁 #${activePlayer.number} unwrapped ${gift.emoji} "${gift.title}"!`,
-      { playerNumber: activePlayer.number, giftId: gift.id, title: gift.title }
+      `Player ${activePlayer.number} unwrapped "${gift.title}"`,
+      { playerNumber: activePlayer.number, giftId: gift.id, title: gift.title, icon: gift.icon }
     );
 
     state.currentTurnNumber += 1;
@@ -230,18 +238,23 @@
       if (swappable.length === 0) {
         state.phase = 'finished';
         state.activePlayerNumber = null;
-        addEvent(state, 'game_finished', '🎉 Every other gift is frozen! Bad Santa is officially over!');
+        addEvent(state, 'game_finished', 'Every other gift is frozen — Bad Santa is officially over!', {
+          icon: 'trophy'
+        });
       } else {
         addEvent(
           state,
           'final_bonus_started',
-          '👑 FINAL BONUS TURN! #1 may KEEP their gift or SWAP with any unfrozen gift!'
+          'Final Bonus Turn: Player 1 may keep their gift or swap with any unfrozen gift!',
+          { icon: 'crown' }
         );
       }
     } else {
       state.phase = 'finished';
       state.activePlayerNumber = null;
-      addEvent(state, 'game_finished', '🎉 All gifts have been unwrapped! Game Over!');
+      addEvent(state, 'game_finished', 'All gifts have been unwrapped — Game Over!', {
+        icon: 'trophy'
+      });
     }
 
     state.updatedAt = Date.now();
@@ -261,7 +274,7 @@
       throw new GameError('Gift not found.');
     }
     if (gift.ownerNumber === activePlayer.number) {
-      throw new GameError(`#${activePlayer.number} already owns that gift!`);
+      throw new GameError(`Player ${activePlayer.number} already owns that gift!`);
     }
     if (gift.frozen) {
       throw new GameError('That gift is FROZEN and can no longer be stolen!');
@@ -313,17 +326,18 @@
 
     state.activePlayerNumber = victim.number;
 
-    const freezeText = becameFrozen ? ' ❄️ FROZEN FOREVER!' : '';
+    const freezeText = becameFrozen ? ' — FROZEN FOREVER!' : '';
     const evt = addEvent(
       state,
       becameFrozen ? 'gift_frozen' : 'gift_stolen',
-      `😈 #${activePlayer.number} STOLE ${gift.emoji} "${gift.title}" from #${victim.number}!${freezeText}`,
+      `Player ${activePlayer.number} stole "${gift.title}" from Player ${victim.number}${freezeText}`,
       {
         thiefNumber: activePlayer.number,
         victimNumber: victim.number,
         giftId: gift.id,
         stealCount: gift.stealCount,
-        frozen: becameFrozen
+        frozen: becameFrozen,
+        icon: becameFrozen ? 'freeze' : 'steal'
       }
     );
 
@@ -337,7 +351,7 @@
     }
     const playerOne = findPlayer(state, 1);
     if (!playerOne) {
-      throw new GameError('Player #1 not found.');
+      throw new GameError('Player 1 not found.');
     }
 
     if (action === 'keep') {
@@ -348,7 +362,8 @@
       const evt = addEvent(
         state,
         'game_finished',
-        `👑 #1 kept ${held ? `${held.emoji} "${held.title}"` : 'their gift'}. Game Over!`
+        `Player 1 kept ${held ? `"${held.title}"` : 'their gift'}. Game Over!`,
+        { icon: 'crown' }
       );
       state.updatedAt = Date.now();
       return { event: evt };
@@ -360,7 +375,7 @@
         throw new GameError('Target gift not found.');
       }
       if (targetGift.ownerNumber === 1) {
-        throw new GameError('#1 already owns that gift!');
+        throw new GameError('Player 1 already owns that gift!');
       }
       if (targetGift.frozen) {
         throw new GameError('That gift is frozen and cannot be swapped!');
@@ -406,7 +421,8 @@
       const evt = addEvent(
         state,
         'final_swap',
-        `👑 PLOT TWIST! #1 swapped ${p1Gift.emoji} "${p1Gift.title}" for #${targetOwner.number}'s ${targetGift.emoji} "${targetGift.title}"! Game Over!`
+        `Plot Twist: Player 1 swapped "${p1Gift.title}" for Player ${targetOwner.number}'s "${targetGift.title}"!`,
+        { icon: 'crown' }
       );
       state.updatedAt = Date.now();
       return { event: evt };
@@ -415,7 +431,7 @@
     throw new GameError('Action must be "keep" or "swap".');
   }
 
-  function editGift(state, { giftId, title, emoji }) {
+  function editGift(state, { giftId, title, icon }) {
     const gift = findGift(state, giftId);
     if (!gift) {
       throw new GameError('Gift not found.');
@@ -425,8 +441,8 @@
       if (!clean) throw new GameError('Gift name cannot be empty.');
       gift.title = clean;
     }
-    if (emoji !== undefined && sanitizeText(emoji, 8)) {
-      gift.emoji = sanitizeText(emoji, 8);
+    if (icon !== undefined) {
+      gift.icon = normalizeIcon(icon);
     }
     state.updatedAt = Date.now();
     return gift;
@@ -447,7 +463,7 @@
     state.currentChainNumbers = snap.currentChainNumbers;
     state.longestStealChain = snap.longestStealChain;
     state.eventLog = snap.eventLog;
-    state.lastEvent = addEvent(state, 'undo', '⏪ Undid the last move!');
+    state.lastEvent = addEvent(state, 'undo', 'Undid the last move', { icon: 'undo' });
     state.updatedAt = Date.now();
     return state;
   }
@@ -459,10 +475,10 @@
     if (topGift && topGift.stealCount > 0) {
       awards.push({
         id: 'most_wanted',
-        icon: '🔥',
+        icon: 'flame',
         title: 'Most Wanted Gift',
-        winner: `${topGift.emoji} ${topGift.title}`,
-        detail: `Stolen ${topGift.stealCount} time${topGift.stealCount === 1 ? '' : 's'}${topGift.frozen ? ' (Frozen!)' : ''}`
+        winner: topGift.title,
+        detail: `Stolen ${topGift.stealCount} time${topGift.stealCount === 1 ? '' : 's'}${topGift.frozen ? ' (Frozen)' : ''}`
       });
     }
 
@@ -470,9 +486,9 @@
     if (topGrinch && topGrinch.stealsMade > 0) {
       awards.push({
         id: 'biggest_grinch',
-        icon: '😈',
+        icon: 'steal',
         title: 'Biggest Bad Santa',
-        winner: `Player #${topGrinch.number}`,
+        winner: `Player ${topGrinch.number}`,
         detail: `Pulled off ${topGrinch.stealsMade} ruthless steal${topGrinch.stealsMade === 1 ? '' : 's'}`
       });
     }
@@ -481,9 +497,9 @@
     if (mostMugged && mostMugged.timesStolenFrom > 0) {
       awards.push({
         id: 'most_mugged',
-        icon: '😭',
+        icon: 'robbed',
         title: 'Most Robbed Player',
-        winner: `Player #${mostMugged.number}`,
+        winner: `Player ${mostMugged.number}`,
         detail: `Got robbed ${mostMugged.timesStolenFrom} time${mostMugged.timesStolenFrom === 1 ? '' : 's'}`
       });
     }
@@ -491,10 +507,10 @@
     if (state.longestStealChain.length >= 2) {
       awards.push({
         id: 'chaos_chain',
-        icon: '⚡',
+        icon: 'bolt',
         title: 'Longest Steal Chain',
         winner: `${state.longestStealChain.length} Steals in a Row`,
-        detail: state.longestStealChain.playerNumbers.map((n) => `#${n}`).join(' → ')
+        detail: state.longestStealChain.playerNumbers.join(' → ')
       });
     }
 
@@ -502,10 +518,10 @@
     if (untouched) {
       awards.push({
         id: 'untouchable',
-        icon: '🕊️',
+        icon: 'peace',
         title: 'Peaceful Present',
-        winner: `${untouched.emoji} ${untouched.title}`,
-        detail: `Stayed safely with #${untouched.ownerNumber} (0 steals)`
+        winner: untouched.title,
+        detail: `Stayed safely with Player ${untouched.ownerNumber} (0 steals)`
       });
     }
 
@@ -531,6 +547,7 @@
       })),
       gifts: state.gifts.map((g) => ({
         ...g,
+        icon: normalizeIcon(g.icon),
         protectedThisTurn: !state.settings.allowStealBack && state.chainStolenGiftIds.includes(g.id),
         canBeStolen: eligibleStealGiftIds.includes(g.id)
       })),
@@ -553,7 +570,7 @@
   }
 
   const BadSantaEngine = {
-    GIFT_EMOJIS,
+    GIFT_ICON_IDS,
     DEFAULT_SETTINGS,
     GameError,
     createInitialState,

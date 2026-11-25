@@ -11,6 +11,7 @@ const {
   undoLastAction,
   serializeState
 } = require('../engine');
+const Icons = require('../icons');
 
 test('full numbered-player Bad Santa flow: unwrap, steal chain, no steal-back, freeze, undo, final swap', () => {
   let state = createInitialState();
@@ -27,8 +28,9 @@ test('full numbered-player Bad Santa flow: unwrap, steal chain, no steal-back, f
   assert.equal(state.activePlayerNumber, 1);
 
   // Turn 1: #1 unwraps "Espresso Frother"
-  const { gift: g1 } = unwrapGift(state, { title: 'Espresso Frother', emoji: '☕' });
+  const { gift: g1 } = unwrapGift(state, { title: 'Espresso Frother', icon: 'coffee' });
   assert.equal(g1.ownerNumber, 1);
+  assert.equal(g1.icon, 'coffee');
   assert.equal(state.activePlayerNumber, 2);
   assert.equal(state.currentTurnNumber, 2);
 
@@ -46,7 +48,7 @@ test('full numbered-player Bad Santa flow: unwrap, steal chain, no steal-back, f
   );
 
   // #1 unwraps "Singing Bass" -> Turn 2 ends, Turn 3 (#3) starts
-  const { gift: g2 } = unwrapGift(state, { title: 'Singing Bass', emoji: '🐟' });
+  const { gift: g2 } = unwrapGift(state, { title: 'Singing Bass', icon: 'gag' });
   assert.equal(g2.ownerNumber, 1);
   assert.equal(state.activePlayerNumber, 3);
   assert.equal(state.currentTurnNumber, 3);
@@ -76,13 +78,14 @@ test('full numbered-player Bad Santa flow: unwrap, steal chain, no steal-back, f
   assert.throws(() => stealGift(state, { giftId: g2.id }), /No steal-backs/);
 
   // #1 unwraps final gift -> enters final_bonus for #1
-  const { gift: g3 } = unwrapGift(state, { title: 'Heated Blanket', emoji: '🧣' });
+  const { gift: g3 } = unwrapGift(state, { title: 'Heated Blanket', icon: 'cozy' });
   assert.equal(state.phase, 'final_bonus');
   assert.equal(state.activePlayerNumber, 1);
 
-  // Edit typo mid-game
-  editGift(state, { giftId: g3.id, title: 'Heated Sherpa Blanket' });
+  // Edit typo and icon mid-game
+  editGift(state, { giftId: g3.id, title: 'Heated Sherpa Blanket', icon: 'gem' });
   assert.equal(g3.title, 'Heated Sherpa Blanket');
+  assert.equal(g3.icon, 'gem');
 
   // #1 cannot swap for frozen g1, CAN swap for #2's unfrozen g2
   assert.throws(
@@ -96,8 +99,17 @@ test('full numbered-player Bad Santa flow: unwrap, steal chain, no steal-back, f
   assert.equal(view.players.find((p) => p.number === 1).giftId, g2.id);
   assert.equal(view.players.find((p) => p.number === 2).giftId, g3.id);
   assert.equal(view.players.find((p) => p.number === 3).giftId, g1.id);
-  assert.ok(view.awards.some((a) => a.id === 'most_wanted'));
-  assert.ok(view.awards.some((a) => a.id === 'chaos_chain'));
+  assert.ok(view.awards.some((a) => a.id === 'most_wanted' && a.icon === 'flame'));
+  assert.ok(view.awards.some((a) => a.id === 'chaos_chain' && a.icon === 'bolt'));
+});
+
+test('all gift icon IDs and themes resolve to valid SVG vector graphics', () => {
+  assert.equal(Icons.THEMES.length, 4);
+  for (const item of Icons.GIFT_ICONS) {
+    assert.ok(Icons.SVGS[item.id], `Missing SVG for gift icon: ${item.id}`);
+    assert.match(Icons.SVGS[item.id], /^<svg[\s\S]*<\/svg>$/);
+  }
+  assert.equal(Icons.resolveIconKey('unknown_legacy_emoji'), 'gift');
 });
 
 test('game ends cleanly without bonus turn when disabled', () => {
@@ -105,9 +117,9 @@ test('game ends cleanly without bonus turn when disabled', () => {
     playerCount: 2,
     settings: { firstPlayerBonusTurn: false }
   });
-  unwrapGift(state, { title: 'Candle' });
+  unwrapGift(state, { title: 'Candle', icon: 'candle' });
   assert.equal(state.activePlayerNumber, 2);
-  unwrapGift(state, { title: 'Mug' });
+  unwrapGift(state, { title: 'Mug', icon: 'coffee' });
   assert.equal(state.phase, 'finished');
   assert.equal(state.activePlayerNumber, null);
 });

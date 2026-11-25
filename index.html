@@ -1,62 +1,92 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="evergreen">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bad Santa — Live Party Tracker</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎅</text></svg>" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path d='M10 25C11.5 13 21 7 32 9.5C37 10.7 40 14.5 41 19' fill='%23d62839'/><circle cx='40.5' cy='19.5' r='4.5' fill='%23fff8eb'/><rect x='6' y='22' width='32' height='7' rx='3.5' fill='%23fff8eb'/><rect x='10.5' y='29' width='10' height='6' rx='2.5' fill='%2313191d' stroke='%23f4c542' stroke-width='1.5'/><rect x='23.5' y='29' width='10' height='6' rx='2.5' fill='%2313191d' stroke='%23f4c542' stroke-width='1.5'/></svg>" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <div class="snow-layer" aria-hidden="true"></div>
+  <div class="bg-pattern" aria-hidden="true"></div>
+  <div id="festive-frame" class="festive-frame" aria-hidden="true"></div>
   <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
 
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand">
-        <span class="brand-icon">🎅</span>
+        <span id="brand-logo" class="brand-logo"></span>
         <span class="brand-text">Bad Santa</span>
       </div>
 
       <div id="game-header-pills" class="header-pills hidden">
-        <span id="pill-remaining" class="pill pill-gold"></span>
-        <span id="pill-opened" class="pill pill-green"></span>
+        <span id="pill-progress" class="pill pill-gold"></span>
         <span id="pill-rule" class="pill pill-muted"></span>
       </div>
 
       <div class="topbar-actions">
-        <button id="header-undo-btn" class="btn btn-ghost btn-sm hidden" type="button" title="Undo last move">
-          ⏪ Undo
-        </button>
-        <button id="toggle-log-btn" class="btn btn-ghost btn-sm hidden" type="button" title="Show or hide play-by-play log">
-          📜 Log
-        </button>
-        <button id="fullscreen-btn" class="btn btn-ghost btn-sm" type="button" title="Toggle TV Fullscreen">
-          ⛶ Fullscreen
-        </button>
-        <button id="sound-toggle-btn" class="btn btn-ghost btn-sm" type="button" title="Toggle sound effects">
-          🔊 Sound
-        </button>
-        <button id="new-game-btn" class="btn btn-danger-ghost btn-sm hidden" type="button">
-          🔄 New Game
-        </button>
+        <div id="theme-switcher" class="theme-switcher" role="group" aria-label="Theme selector"></div>
+        <button id="print-sheet-btn" class="icon-btn" type="button" title="Print number slips (1-X)" aria-label="Print number slips"></button>
+        <button id="rules-btn" class="icon-btn" type="button" title="Rules (?)" aria-label="Rules"></button>
+        <button id="header-undo-btn" class="icon-btn hidden" type="button" title="Undo last move" aria-label="Undo"></button>
+        <button id="toggle-log-btn" class="icon-btn hidden" type="button" title="Toggle play-by-play log" aria-label="Toggle log"></button>
+        <button id="fullscreen-btn" class="icon-btn" type="button" title="Fullscreen" aria-label="Fullscreen"></button>
+        <button id="sound-toggle-btn" class="icon-btn" type="button" title="Toggle sound" aria-label="Toggle sound"></button>
+        <button id="new-game-btn" class="icon-btn icon-btn-danger hidden" type="button" title="New game" aria-label="New game"></button>
       </div>
     </div>
   </header>
 
   <main id="app" class="app-container">
     <div class="loading-card">
-      <div class="loading-spinner">🎄</div>
       <p>Loading Bad Santa...</p>
     </div>
   </main>
+
+  <!-- Printable Number Sheet Modal -->
+  <div id="print-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="print-modal-title">
+    <div class="modal-card modal-card-print">
+      <div class="modal-header no-print">
+        <h3 id="print-modal-title" class="inline-heading">Printable Number Sheet</h3>
+        <button id="print-modal-close" class="icon-btn" type="button" aria-label="Close"></button>
+      </div>
+      <div class="print-toolbar no-print">
+        <label class="print-count-control">
+          <span>Cards: <strong>1 –</strong></span>
+          <input type="number" id="print-count-input" min="2" max="60" value="8" />
+        </label>
+        <label class="print-bw-toggle">
+          <input type="checkbox" id="print-bw-checkbox" />
+          <span>Ink-Saver B&amp;W</span>
+        </label>
+        <button type="button" id="trigger-print-btn" class="btn btn-gold btn-sm"></button>
+      </div>
+      <div class="print-preview-scroll">
+        <div id="print-sheet-area" class="print-sheet-area"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rules Popup Modal -->
+  <div id="rules-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="rules-modal-title">
+    <div class="modal-card modal-card-wide">
+      <div class="modal-header">
+        <h3 id="rules-modal-title" class="inline-heading">How to Play Bad Santa</h3>
+        <button id="rules-modal-close" class="icon-btn" type="button" aria-label="Close"></button>
+      </div>
+      <div id="rules-modal-body" class="rules-modal-body"></div>
+      <div class="modal-actions" style="margin-top:1.15rem">
+        <button type="button" id="rules-modal-ok" class="btn btn-gold">Got It — Let's Play</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Edit Gift Modal -->
   <div id="edit-gift-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="edit-gift-title">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 id="edit-gift-title">✏️ Edit Gift</h3>
-        <button id="edit-gift-close" class="icon-btn" type="button" aria-label="Close">✕</button>
+        <h3 id="edit-gift-title" class="inline-heading">Edit Gift</h3>
+        <button id="edit-gift-close" class="icon-btn" type="button" aria-label="Close"></button>
       </div>
       <form id="edit-gift-form" class="form-stack">
         <input type="hidden" id="edit-gift-id" />
@@ -65,8 +95,8 @@
           <input type="text" id="edit-gift-name" maxlength="80" required autocomplete="off" />
         </label>
         <div class="field">
-          <span>Icon</span>
-          <div id="edit-gift-emoji-grid" class="emoji-picker-grid"></div>
+          <span>Gift Icon</span>
+          <div id="edit-gift-icon-grid" class="icon-picker-grid"></div>
         </div>
         <div class="modal-actions">
           <button type="button" id="edit-gift-cancel" class="btn btn-ghost">Cancel</button>
@@ -76,6 +106,7 @@
     </div>
   </div>
 
+  <script src="./icons.js"></script>
   <script src="./engine.js"></script>
   <script src="./sound.js"></script>
   <script src="./app.js"></script>
