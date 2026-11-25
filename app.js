@@ -6,6 +6,7 @@
 
   const appEl = document.getElementById('app');
   const brandLogoEl = document.getElementById('brand-logo');
+  const snowCrystalsEl = document.getElementById('snow-crystals');
   const festiveFrameEl = document.getElementById('festive-frame');
   const themeSwitcherEl = document.getElementById('theme-switcher');
   const headerPills = document.getElementById('game-header-pills');
@@ -1156,6 +1157,33 @@
 
   // ==================== BOOT ====================
   brandLogoEl.innerHTML = Icons.SVGS.badSantaLogo;
+  if (snowCrystalsEl) {
+    const flakes = [
+      { left: 5, size: 18, dur: 15, delay: -2, sway: 4.5, drift: 45 },
+      { left: 13, size: 12, dur: 21, delay: -9, sway: 6.2, drift: -35 },
+      { left: 22, size: 22, dur: 13, delay: -5, sway: 5.1, drift: 60 },
+      { left: 31, size: 14, dur: 19, delay: -14, sway: 4.8, drift: -40 },
+      { left: 41, size: 19, dur: 16, delay: -7, sway: 5.7, drift: 50 },
+      { left: 50, size: 13, dur: 22, delay: -11, sway: 6.5, drift: -30 },
+      { left: 59, size: 21, dur: 14, delay: -3, sway: 4.6, drift: 55 },
+      { left: 68, size: 15, dur: 18, delay: -16, sway: 5.4, drift: -45 },
+      { left: 77, size: 20, dur: 15, delay: -8, sway: 4.9, drift: 40 },
+      { left: 86, size: 13, dur: 20, delay: -12, sway: 6.0, drift: -50 },
+      { left: 93, size: 17, dur: 16, delay: -4, sway: 5.2, drift: 30 },
+      { left: 18, size: 11, dur: 24, delay: -18, sway: 7.0, drift: 25 },
+      { left: 46, size: 16, dur: 17, delay: -1, sway: 5.0, drift: -35 },
+      { left: 73, size: 12, dur: 23, delay: -19, sway: 6.4, drift: 35 }
+    ];
+    snowCrystalsEl.innerHTML = flakes
+      .map(
+        (f) => `
+        <div
+          class="snow-crystal"
+          style="left:${f.left}%;width:${f.size}px;height:${f.size}px;--fall-dur:${f.dur}s;--fall-delay:${f.delay}s;--sway-dur:${f.sway}s;--drift-x:${f.drift}px"
+        >${Icons.SVGS.freeze}</div>`
+      )
+      .join('');
+  }
   if (festiveFrameEl) {
     festiveFrameEl.innerHTML = `
       <div class="frame-corner frame-tl">${Icons.SVGS.mistletoeCorner}</div>
